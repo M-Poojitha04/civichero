@@ -1,0 +1,11 @@
+{
+  "name": "CivicHero",
+  "description": "Hyperlocal Community AI Coordinator enabling citizens to report, validate, and collaborate on resolving local issues with Gemini-powered severity scoring, duplicate detection, and automated government assignment.",
+  "requestFramePermissions": [
+    "microphone",
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

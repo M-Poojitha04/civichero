@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="100%" height="100%">
+  <defs>
+    <linearGradient id="roadGradAfter" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1A202C" />
+      <stop offset="100%" stop-color="#0F1219" />
+    </linearGradient>
+    <linearGradient id="skyGradAfter" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#63B3ED" />
+      <stop offset="100%" stop-color="#90CDF4" />
+    </linearGradient>
+  </defs>
+  <rect width="600" height="400" fill="url(#skyGradAfter)" />
+  <circle cx="500" cy="80" r="30" fill="#F6E05E" />
+  <path d="M 0 400 L 250 150 L 350 150 L 600 400 Z" fill="url(#roadGradAfter)" />
+  <path d="M 295 150 L 305 150 L 310 180 L 290 180 Z" fill="#ECC94B" />
+  <path d="M 290 200 L 310 200 L 315 250 L 285 250 Z" fill="#ECC94B" />
+  <path d="M 280 290 L 320 290 L 330 380 L 270 380 Z" fill="#ECC94B" />
+  <path d="M 0 400 L 250 150 L 0 150 Z" fill="#48BB78" />
+  <path d="M 600 400 L 350 150 L 600 150 Z" fill="#48BB78" />
+  <rect x="20" y="20" width="130" height="35" rx="6" fill="#38A169" opacity="0.9" />
+  <text x="85" y="42" fill="#FFF" font-family="monospace" font-size="12" font-weight="bold" text-anchor="middle">ROADS: REPAIRED</text>
+</svg>
