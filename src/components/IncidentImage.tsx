@@ -49,8 +49,8 @@ export const IncidentImage: React.FC<IncidentImageProps> = ({
     if (currentSrc !== matchedFallback) {
       setCurrentSrc(matchedFallback);
     } else {
-      const cat = (CATEGORY_DEFAULT_IMAGES[category as keyof typeof CATEGORY_DEFAULT_IMAGES] 
-        ? category 
+      const cat = (CATEGORY_DEFAULT_IMAGES[category as keyof typeof CATEGORY_DEFAULT_IMAGES]
+        ? category
         : "Road Issue") as keyof typeof CATEGORY_DEFAULT_IMAGES;
       setCurrentSrc(type === "before" ? CATEGORY_DEFAULT_IMAGES[cat].before : CATEGORY_DEFAULT_IMAGES[cat].after);
       onLoadComplete?.(false);
@@ -62,7 +62,7 @@ export const IncidentImage: React.FC<IncidentImageProps> = ({
       <img
         src={currentSrc}
         alt={alt || "Incident Image"}
-        className={`w-full h-full object-cover transition-opacity duration-200 opacity-100 ${className}`}
+        className={`w-full h-full object-contain transition-opacity duration-200 opacity-100 ${className}`} 
         style={style}
         onLoad={handleLoad}
         onError={handleError}

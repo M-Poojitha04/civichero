@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
 import {
   Sparkles,
   MapPin,
@@ -1093,13 +1094,24 @@ export default function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: userMsg,
-          issues: issues
+          issuesHistory: issues
         })
       });
 
       if (response.ok) {
         const data = await response.json();
-        setChatMessages(prev => [...prev, { sender: "ai", text: data.reply, timestamp: Date.now() }]);
+
+        // Small delay so typing animation is visible
+        await new Promise(resolve => setTimeout(resolve, 700));
+
+        setChatMessages(prev => [
+          ...prev,
+          {
+            sender: "ai",
+            text: data.text,
+            timestamp: Date.now()
+          }
+        ]);
       } else {
         throw new Error("Chatbot failed");
       }
@@ -1109,6 +1121,14 @@ export default function App() {
     } finally {
       setIsChatLoading(false);
     }
+  };
+  const sendQuickPrompt = (prompt: string) => {
+    setChatInput(prompt);
+
+    setTimeout(() => {
+      const form = document.querySelector("form");
+      form?.requestSubmit();
+    }, 50);
   };
 
   const selectedIssue = issues.find(i => i && i.id === selectedIssueId);
@@ -2662,7 +2682,9 @@ export default function App() {
                     ? "bg-cyan-600 text-white rounded-br-none"
                     : "bg-slate-900 border border-slate-800 text-slate-200 rounded-bl-none"
                     }`}>
-                    {msg.text}
+                    <ReactMarkdown>
+                      {msg.text}
+                    </ReactMarkdown>
                   </div>
                 </div>
               ))}
@@ -2683,27 +2705,21 @@ export default function App() {
             <div className="p-2 border-t border-slate-900/60 bg-[#050914] flex gap-1.5 overflow-x-auto whitespace-nowrap">
               <button
                 type="button"
-                onClick={() => {
-                  setChatInput("Identify active school zone hazards");
-                }}
+                onClick={() => sendQuickPrompt("Identify active school zone hazards")}
                 className="px-2 py-1 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 hover:text-cyan-400 rounded font-mono text-[9px] cursor-pointer"
               >
                 🏫 School Hazards
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setChatInput("Show department scorecards and resolution rates");
-                }}
+                onClick={() => sendQuickPrompt("Show department scorecards and resolution rates")}
                 className="px-2 py-1 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 hover:text-cyan-400 rounded font-mono text-[9px] cursor-pointer"
               >
                 📊 Scorecards
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setChatInput("Recommend preventative actions for flooding");
-                }}
+                onClick={() => sendQuickPrompt("Recommend preventative actions for flooding")}
                 className="px-2 py-1 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 hover:text-cyan-400 rounded font-mono text-[9px] cursor-pointer"
               >
                 🌊 Flood Hazards

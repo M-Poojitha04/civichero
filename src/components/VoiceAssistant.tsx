@@ -66,7 +66,7 @@ export default function VoiceAssistant({ onDraftGenerated }: VoiceAssistantProps
   const SUGGESTED_PHRASES = {
     en: "Huge water tube failure near school pavement. It is flooding the road completely.",
     hi: "मंडी मार्ग गेट नंबर 2 के पास बिजली के तारों से चिन्गारी निकल रही है, बहुत ही खतरनाक है।",
-    te: "మెట్రో స్టేషన్ గెట్ వద్ద పెద్ద ఎత్తున ప్లాస్టిక్ వ్యర్థాలు మరియు కుప్పలు పడి ఉన్నాయి.",
+    te: "మెట్రో స్టేషన్ గెట్ వద్ద పెద్ద ఎత్తున ప్లాస్టిక్ వ్యర్థాలు మరియు చెత్త కుప్పలు పడి ఉన్నాయి.",
     ta: "பள்ளிக்கு அருகில் உள்ள சாலையில் பெரிய பள்ளம் உள்ளது, குழந்தைகள் கடக்க முடியவில்லை."
   };
 

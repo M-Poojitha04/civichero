@@ -120,35 +120,64 @@ export async function seedDatabase() {
           "Peeling bituminous course on descending ramp",
           "Deep pavement sinkhole near educational hub",
           "Broken road median divider scattering bricks",
-          "Extensive structural road wear near bus terminal"
+          "Extensive structural road wear near bus terminal",
+          "Traffic signal not functioning at busy junction",
+          "Traffic light blackout near school crossing",
+          "Blinking red signal causing congestion"
         ],
         descriptions: [
           "Continuous water logging during rainfall and dense heavy axle bus transits have caused the asphalt layers to crumble, resulting in multiple tire-damaging potholes.",
           "The upper rubberized asphalt wearing course has stripped off fully, leaving loose granite aggregates scattered across the road and causing braking skid hazards.",
           "A major section of the asphalt has collapsed inwards on the secondary service lane, exposing the dry stone sub-grade and creating a 2-foot deep sink hole.",
           "Concrete block medians have been knocked out of alignment, with sharp concrete pieces protruding onto the main fast lane and blocking safe vehicle movement.",
-          "Road surface displays deep structural rutting and complete cracking across both main lanes, making driving highly turbulent and unsafe for two-wheelers."
+          "Road surface displays deep structural rutting and complete cracking across both main lanes, making driving highly turbulent and unsafe for two-wheelers.",
+          "The traffic signal has stopped functioning completely causing heavy congestion and unsafe pedestrian crossings.",
+          "The traffic lights remain off throughout the day, increasing accident risk at this busy junction.",
+          "The signal continuously blinks red causing confusion among motorists and pedestrians."
         ],
         rootCauses: [
           "Sub-base moisture penetration combined with persistent transit of overloaded municipal vehicles exceeding the standard sub-grade structural threshold.",
           "Asphalt aggregate stripping due to severe lateral shear friction from high-speed heavy braking on descending flyover lanes.",
           "Gradual soil settlement and piping of aggregate base caused by a minor underlying stormwater leakage node.",
           "High-speed mechanical impact by commercial vehicles during midnight coupled with missing reflective marker guards.",
-          "Thermal expansion cycles combined with legacy bituminous mix formula which lacked correct polymer modifiers to resist water stripping."
+          "Thermal expansion cycles combined with legacy bituminous mix formula which lacked correct polymer modifiers to resist water stripping.",
+          "Traffic controller unit failure.",
+          "Power supply interruption to the junction.",
+          "Signal controller hardware malfunction."
         ],
         suggestions: [
           ["Excavate defective base down to 150mm", "Apply dense bituminous macadam base layer", "Lay wearing asphalt concrete with polymer binders", "Compact using a 10-ton dual-drum vibrating roller"],
           ["Mill the damaged top asphalt course with cold milling machine", "Spray hot rubberized tack emulsifier", "Screed stone matrix asphalt wearing layer", "Ensure longitudinal joint compaction"],
           ["Cordon off hazard zone with reflective water barriers", "Exhume surrounding hollow base", "Fill cavity with structural cement aggregate mix", "Restore asphalt pavement cap"],
           ["Remove broken concrete dividers", "Lay high-durability interlocked concrete medians", "Apply retroreflective yellow paints", "Install impact-absorbing terminal end blocks"],
-          ["Execute full-width mechanical scarification", "Re-grade base with aggregate binder grade-II", "Apply micro-surfacing emulsion cap", "Calibrate adjacent drainage level outlets"]
+          ["Execute full-width mechanical scarification", "Re-grade base with aggregate binder grade-II", "Apply micro-surfacing emulsion cap", "Calibrate adjacent drainage level outlets"],
+          [
+            "Replace signal controller",
+            "Restore electrical connection",
+            "Test all signal phases"
+          ],
+
+          [
+            "Repair damaged traffic lights",
+            "Replace LED modules",
+            "Verify synchronization"
+          ],
+
+          [
+            "Inspect signal controller",
+            "Replace faulty relay",
+            "Calibrate timing"
+          ]
         ],
         predictiveAlerts: [
           "Sub-grade water saturation detected via moisture sensors. High probability of recurring pavement failure without an immediate drainage bypass channel.",
           "Elevated structural wear curve. Adjacent flyover spans show similar aggregate stripping; full ramp resurfacing is advised before upcoming winter monsoon.",
           "Subsidence monitoring indicates minor soil movement. Immediate water-line pressure logging recommended to rule out adjacent main line fractures.",
           "Recurring collision sector. Traffic speed calibration or solar blinker median indicators recommended to reduce nightly impact risk.",
-          "Asphalt lifecycle is depleted. Rutting index has exceeded 22mm. Temporary patches will fail under standard peak-hour heavy loading."
+          "Asphalt lifecycle is depleted. Rutting index has exceeded 22mm. Temporary patches will fail under standard peak-hour heavy loading.",
+          "Repeated failures reported at this junction.",
+          "Traffic congestion likely during peak hours.",
+          "Controller replacement recommended."
         ],
         departments: ["Roads & Buildings Department", "Greater Hyderabad Municipal Corporation (GHMC)"]
       },
@@ -375,7 +404,7 @@ export async function seedDatabase() {
       const lName = LAST_NAMES[Math.floor(Math.random() * LAST_NAMES.length)];
       const name = `${fName} ${lName}`;
       const email = `${fName.toLowerCase()}.${lName.toLowerCase()}${i}@hyderabad.civic.in`;
-      
+
       const rep = Math.floor(Math.random() * 300); // base points
       // Add top contributors
       const isTop = Math.random() < 0.1; // 10% are top contributors
@@ -505,7 +534,7 @@ export async function seedDatabase() {
 
       const templates = TEMPLATES[category];
       const templateIndex = Math.floor(Math.random() * templates.titles.length);
-      
+
       const titleText = `${templates.titles[templateIndex]} #${1000 + i}`;
       const descriptionText = `${templates.descriptions[templateIndex]} Please resolve this on priority. This is causing major distress to local residents.`;
       const rootCause = templates.rootCauses[templateIndex];
@@ -516,15 +545,15 @@ export async function seedDatabase() {
       // Pick Ward
       const wardObj = WARDS[Math.floor(Math.random() * WARDS.length)];
       const { lat: rawLat, lng: rawLng } = offsetCoords(wardObj.lat, wardObj.lng);
-      
+
       const address = `${wardObj.landmark}, Sector ${Math.floor(Math.random() * 5) + 1}, near block ${String.fromCharCode(65 + Math.floor(Math.random() * 6))}`;
 
       // Date reported
       const reportedAt = Math.floor(oneYearAgo + Math.random() * (now - oneYearAgo - 7 * 24 * 3600 * 1000));
-      
+
       const votes = Math.floor(Math.random() * 110) + 10;
       const verifiedCount = Math.floor(votes * (0.4 + Math.random() * 0.4));
-      
+
       // Select upvoters and validators emails
       const upvotersPool = [];
       const validatorsPool = [];
@@ -555,7 +584,7 @@ export async function seedDatabase() {
       const aiConf = Math.floor(Math.random() * 10) + 90; // 90-100%
       const gpsVerified = Math.random() < 0.95;
       const duplicateStatus = "Checked-Clear";
-      
+
       // Calculate realistic trust score (65-98)
       const trustScore = Math.floor(70 + (verifiedCount / votes) * 20 + (gpsVerified ? 8 : 0));
 
@@ -564,13 +593,13 @@ export async function seedDatabase() {
       const isHigh = severity === "High";
       const impactScore = Math.floor(40 + (isCritical ? 45 : isHigh ? 30 : 15) + Math.random() * 15);
       const affected = Math.floor(50 + (isCritical ? 500 : isHigh ? 200 : 50) + Math.random() * 100);
-      
+
       const schoolsHospitals = [];
       if (Math.random() < 0.3) schoolsHospitals.push("Apollo Clinic");
       if (Math.random() < 0.25) schoolsHospitals.push("St. Jude High School");
       if (Math.random() < 0.15) schoolsHospitals.push("Care Hospital Gachibowli");
 
-      const trafficDisruption: "None" | "Low" | "Medium" | "High" = 
+      const trafficDisruption: "None" | "Low" | "Medium" | "High" =
         isCritical ? "High" : isHigh ? "Medium" : Math.random() < 0.5 ? "Low" : "None";
 
       // Timeline entries
@@ -704,15 +733,15 @@ export async function seedDatabase() {
       const numComments = Math.floor(Math.random() * 3) + 1;
       for (let c = 0; c < numComments; c++) {
         const isOfficial = Math.random() < 0.35; // 35% comments from official representatives
-        const text = isOfficial 
+        const text = isOfficial
           ? officialCommentPool[Math.floor(Math.random() * officialCommentPool.length)]
           : citizenCommentPool[Math.floor(Math.random() * citizenCommentPool.length)];
 
-        const userEmail = isOfficial 
+        const userEmail = isOfficial
           ? `officer.${OFFICERS[Math.floor(Math.random() * OFFICERS.length)].name.toLowerCase().replace(/[^a-z]/g, "")}@hyderabad.gov.in`
           : citizenEmails[Math.floor(Math.random() * citizenEmails.length)];
 
-        const userName = isOfficial 
+        const userName = isOfficial
           ? `Officer ${OFFICERS[Math.floor(Math.random() * OFFICERS.length)].name} (${OFFICERS[Math.floor(Math.random() * OFFICERS.length)].role})`
           : seedUsers.find(u => u.email === userEmail)?.name || "Civic Defender";
 

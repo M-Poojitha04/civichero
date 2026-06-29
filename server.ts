@@ -2028,12 +2028,16 @@ Text: "${text}"`,
 
 // 5. Intelligent AI Civic Assistant Chatbot
 app.post("/api/gemini/chatbot", async (req, res) => {
+  console.log(req.body);
   const { message, issuesHistory } = req.body;
   let activeIssues: any[] = [];
 
   try {
     activeIssues = issuesHistory || await db.select().from(issuesTable);
-
+    console.log("========== FIRST ISSUE ==========");
+console.dir(activeIssues[0], { depth: null });
+console.log("================================");
+    console.log(activeIssues[0]);
     if (!geminiApiKey) {
       return returnFallbackChatbot(message, activeIssues, res);
     }
@@ -2166,7 +2170,6 @@ function returnFallbackExecutiveReport(activeIssues: any[]) {
   const resolved = activeIssues.filter(i => i.status === "Resolved").length;
   const open = total - resolved;
   const totalCost = activeIssues.reduce((sum, i) => sum + (i.resolutionCost || 0), 0);
-  
   return {
     executiveSummary: `CivicHero AI Smart-City Operating System has compiled a comprehensive audit of the Hyderabad Municipal Territory over the preceding active cycle. There are currently ${total} total incident nodes indexed, with ${resolved} resolved (${Math.round((resolved / total) * 100)}% resolution rate) and ${open} pending active triage. Visual AI Vision validation systems have processed 100% of reported photographs, automatically identifying duplicate filings, optimizing field crew dispatch patterns, and auditing completed resolutions. System-wide SLA compliance stands robust, though seasonal water-supply and road surfacing backlogs require targeted commissioner mobilization.`,
     todaysIncidentsCount: Math.floor(Math.random() * 5) + 12,
@@ -2261,8 +2264,67 @@ function returnFallbackExecutiveReport(activeIssues: any[]) {
     infrastructureRisks: "Ageing utility conduit poles in Charminar and Himayatnagar sectors are vulnerable to high-wind cable tension failures."
   };
 }
+function detectIntent(message: string) {
+  const msg = message.toLowerCase();
 
+  if (
+    /(school|college|student|education|campus|kids|children|class|university)/.test(msg)
+  ) {
+    return "school";
+  }
+
+  if (
+    /(flood|drain|drainage|waterlogging|monsoon|overflow|rain|storm)/.test(msg)
+  ) {
+    return "flood";
+  }
+
+  if (
+    /(road|pothole|street|bridge|flyover|traffic|divider)/.test(msg)
+  ) {
+    return "road";
+  }
+
+  if (
+    /(electric|power|streetlight|transformer|wire|cable|voltage|light)/.test(msg)
+  ) {
+    return "electricity";
+  }
+
+  if (
+    /(water|pipeline|tap|leak|sewer|drinking|supply)/.test(msg)
+  ) {
+    return "water";
+  }
+
+  if (
+    /(garbage|trash|waste|dump|bin|clean)/.test(msg)
+  ) {
+    return "waste";
+  }
+
+  if (
+    /(department|scorecard|statistics|metrics|performance|resolution|sla)/.test(msg)
+  ) {
+    return "scorecard";
+  }
+
+  if (
+    /(ward|zone|district|area|sector)/.test(msg)
+  ) {
+    return "ward";
+  }
+
+  if (
+    /(hello|hi|hey|good morning|good evening|who are you)/.test(msg)
+  ) {
+    return "greeting";
+  }
+
+  return "general";
+}
 function returnFallbackChatbot(message: string, issues: any[], res: any) {
+  const intent = detectIntent(message);
   const msg = message.toLowerCase();
   let text = "";
 
@@ -2270,25 +2332,199 @@ function returnFallbackChatbot(message: string, issues: any[], res: any) {
   const resolved = issues.filter(i => i.status === "Resolved").length;
   const open = total - resolved;
 
-  if (msg.includes("hello") || msg.includes("hi") || msg.includes("who are you")) {
-    text = `Greetings! I am the **CivicHero AI Advisor**. I help analyze our ward datasets, track SLA compliance across departments, and coordinate emergency public works. How can I assist you in optimizing our community metrics today?`;
-  } else if (msg.includes("stat") || msg.includes("total") || msg.includes("metric") || msg.includes("how many")) {
-    text = `Here is our live **Municipal Status Checklist**:
-- **Total Complaints Logged**: **${total}**
-- **Successfully Resolved**: **${resolved}**
-- **Active Operational Issues**: **${open}**
+if (intent === "greeting") {
+    text = `👋 Welcome to **CivicHero AI Advisor**
 
-The **State Electricity Board** is leading with a **95% SLA Compliance Rate**, while roads department workloads are currently high with active potholes under inspection.`;
-  } else if (msg.includes("hazard") || msg.includes("critical") || msg.includes("danger") || msg.includes("emergency")) {
-    const criticals = issues.filter(i => i.severity === "Critical");
-    text = `Our AI has flagged **${criticals.length}** critical safety incidents requiring immediate attention:
-${criticals.map(i => `- **${i.title}** situation at *${i.address}* (Assigned to: *${i.assignedDepartment}*).`).join("\n")}
+I'm your intelligent civic assistant for Hyderabad Smart City.
 
-These zones are currently monitored via real-time satellite coordination. Emergency crews are active on location.`;
-  } else if (msg.includes("pothole") || msg.includes("road")) {
+I can instantly help you with:
+
+🏫 School Zone Safety
+🌊 Flood Risk Assessment
+🚧 Road & Infrastructure Issues
+⚡ Electricity & Streetlight Faults
+🚰 Water Supply Complaints
+📊 Department Performance
+📍 Ward-wise Civic Reports
+
+Try asking:
+
+• Show department scorecards
+• Recommend flood prevention
+• Show Ward 9 issues
+• Find hazards near schools`;
+}else if (intent === "scorecard")
+   {    const departments = [...new Set(issues.map(i => i.assignedDepartment))];
+
+const lines = departments
+.map(dep => {
+
+    const depIssues = issues.filter(i => i.assignedDepartment === dep);
+
+    const solved = depIssues.filter(i => i.status === "Resolved").length;
+
+    const rate = depIssues.length
+        ? Math.round((solved / depIssues.length) * 100)
+        : 0;
+
+    return {
+        dep,
+        solved,
+        total: depIssues.length,
+        rate
+    };
+
+})
+.sort((a,b)=>b.rate-a.rate)
+.map(d =>
+`• ${d.dep}: ${d.solved}/${d.total} resolved (${d.rate}%)`
+);
+
+text = `📊 Department Resolution Scorecard
+
+${lines.join("\n")}
+
+Overall Statistics
+------------------
+• Total Issues: ${total}
+• Resolved: ${resolved}
+• Open: ${open}`;
+} else if (intent === "school"){
+const schoolIssues = issues.filter(i => {
+    const address = i.location?.address?.toLowerCase() || "";
+    const nearby = (i.communityImpact?.schoolsHospitalsNearby || [])
+        .join(" ")
+        .toLowerCase();
+
+return (
+    address.includes("school") ||
+    address.includes("college") ||
+    address.includes("university") ||
+    address.includes("academy")
+);
+});
+
+// Highest priority first
+schoolIssues.sort((a, b) => {
+
+    const severityRank: any = {
+        Critical: 4,
+        High: 3,
+        Medium: 2,
+        Low: 1
+    };
+
+    return severityRank[b.severity] - severityRank[a.severity];
+});
+
+const topIssues = schoolIssues.slice(0, 5);
+
+text = `🏫 School Zone Safety Report
+
+AI analyzed ${issues.length} active complaints.
+
+${schoolIssues.length} incidents were found near schools or colleges.
+
+Displaying the 5 highest-risk incidents.
+
+Top Priority Hazards:
+
+${topIssues.map((i, index) => `
+${index + 1}. ${i.title}
+
+📍 ${i.location.address}
+
+⚠️ ${i.severity} • ${i.status}
+
+🏢 ${i.assignedDepartment}
+`).join("\n")}
+
+Recommendation:
+• Increase traffic marshals during school hours.
+• Repair these locations within 24–48 hours.
+• Install temporary warning signs until work is completed.`;
+
+}
+else if (intent === "flood") {
+
+const floodIssues = issues.filter(i => {
+
+    const title = i.title?.toLowerCase() || "";
+    const desc = i.description?.toLowerCase() || "";
+
+    return (
+        title.includes("flood") ||
+        title.includes("drain") ||
+        title.includes("water") ||
+        title.includes("pipeline") ||
+        desc.includes("drain") ||
+        desc.includes("overflow")
+    );
+
+});
+
+  text = `🌊 Flood Prevention Recommendations
+
+Current water-related complaints: ${floodIssues.length}
+
+Recommended preventive measures:
+
+• Clean blocked storm-water drains before heavy rainfall.
+• Remove garbage obstructing drainage channels.
+• Inspect leaking pipelines and repair damaged valves.
+• Monitor low-lying roads for water accumulation.
+• Increase inspection frequency during monsoon season.
+
+Priority locations:
+
+${floodIssues.slice(0,5).map(i =>
+`• ${i.title}
+📍 ${i.location.address} (${i.location.ward})`
+).join("\n")}`;
+} 
+else if (intent === "road") {
     const roads = issues.filter(i => i.category === "Road Issue");
-    text = `There are **${roads.length}** road-related incidents. The primary bottleneck is "**${roads[0]?.title || "Market Boulevard Pothole"}**" situated in *${roads[0]?.ward || "Ward 12"}*. AI predictive analytics indicates a sub-base moisture issue. Recommended action: Resurfacing with B-mix aggregate binder.`;
-  } else {
+    text = `There are **${roads.length}** road-related incidents. The primary bottleneck is "**${roads[0]?.title || "Market Boulevard Pothole"}**" situated in *${roads[0]?.location?.ward || "Ward 12"}*. AI predictive analytics indicates a sub-base moisture issue. Recommended action: Resurfacing with B-mix aggregate binder.`;
+  } else if (intent === "ward") {
+
+    const wardMatch = msg.match(/ward\s*(\d+)/i);
+
+    if (wardMatch) {
+
+        const wardNumber = wardMatch[1];
+
+        const wardIssues = issues.filter(i =>
+            i.location?.ward?.includes(`Ward ${wardNumber}`)
+        );
+
+        if (wardIssues.length === 0) {
+
+            text = `No active complaints were found for Ward ${wardNumber}.`;
+
+        } else {
+
+            text = `📍 Ward ${wardNumber} Dashboard
+
+Total Active Complaints: ${wardIssues.length}
+
+${wardIssues.slice(0,6).map(i => `
+• ${i.title}
+📍 ${i.location.address}
+🏢 ${i.assignedDepartment}
+📌 Status: ${i.status}
+⚠️ Severity: ${i.severity}
+`).join("\n")}`;
+
+        }
+
+    } else {
+
+        text = "Please specify a ward number. Example: Ward 4 or Ward 9.";
+
+    }
+
+}
+  else {
     text = `I have received your request regarding community coordination.
 Our current intelligence database compiles **${total} active civic nodes** with **${resolved} fully closed**.
 Is there a specific ward location (e.g., Ward 12, Ward 4) or department (Water Board, Electricity Board) you would like me to conduct an AI audit check on?`;
