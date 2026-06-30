@@ -803,7 +803,11 @@ app.post("/api/issues", async (req, res) => {
 app.post("/api/issues/:id/vote", async (req, res) => {
   try {
     const { id } = req.params;
-    const { email } = req.body;
+    const email = req.body?.email || req.body?.userEmail || req.body?.user?.email;
+
+    if (!email) {
+      return res.status(400).json({ error: "Missing required field: email" });
+    }
 
     const row = await db.select().from(issuesTable).where(eq(issuesTable.id, id));
     if (row.length === 0) {
@@ -813,11 +817,11 @@ app.post("/api/issues/:id/vote", async (req, res) => {
     const issue = row[0];
     const upvoters: string[] = issue.upvoters ? JSON.parse(issue.upvoters) : [];
 
-    if (email && upvoters.includes(email)) {
-      return res.status(400).json({ error: "Already voted for this issue" });
+    if (upvoters.includes(email)) {
+      return res.json({ success: true, alreadyVoted: true, votes: issue.votes || 0, upvoters });
     }
 
-    if (email) upvoters.push(email);
+    upvoters.push(email);
     const newVotes = (issue.votes || 0) + 1;
 
     await db.update(issuesTable)
@@ -827,8 +831,14 @@ app.post("/api/issues/:id/vote", async (req, res) => {
       })
       .where(eq(issuesTable.id, id));
 
-    res.json({ success: true, votes: newVotes, upvoters });
+    res.json({ success: true, alreadyVoted: false, votes: newVotes, upvoters });
   } catch (error: any) {
+    console.error("[vote] Failed to update issue vote", {
+      issueId: req.params.id,
+      email: req.body?.email,
+      error: error.message,
+      stack: error.stack
+    });
     res.status(500).json({ error: "Failed to record upvote.", details: error.message });
   }
 });
@@ -921,7 +931,11 @@ app.post("/api/issues/:id/comments", async (req, res) => {
 app.post("/api/issues/:id/subscribe", async (req, res) => {
   try {
     const { id } = req.params;
-    const { email } = req.body;
+    const email = req.body?.email || req.body?.userEmail || req.body?.user?.email;
+
+    if (!email) {
+      return res.status(400).json({ error: "Missing required field: email" });
+    }
 
     const row = await db.select().from(issuesTable).where(eq(issuesTable.id, id));
     if (row.length === 0) {
@@ -931,19 +945,86 @@ app.post("/api/issues/:id/subscribe", async (req, res) => {
     const issue = row[0];
     const followers: string[] = issue.followers ? JSON.parse(issue.followers) : [];
 
-    if (email && followers.includes(email)) {
-      return res.status(400).json({ error: "Already following this issue" });
+    if (followers.includes(email)) {
+      return res.json({ success: true, alreadyFollowing: true, followers });
     }
 
-    if (email) followers.push(email);
+    followers.push(email);
 
     await db.update(issuesTable)
       .set({ followers: JSON.stringify(followers) })
       .where(eq(issuesTable.id, id));
 
-    res.json({ success: true, followers });
+    res.json({ success: true, alreadyFollowing: false, followers });
   } catch (error: any) {
+    console.error("[subscribe] Failed to update issue subscription", {
+      issueId: req.params.id,
+      email: req.body?.email,
+      error: error.message,
+      stack: error.stack
+    });
     res.status(500).json({ error: "Failed to subscribe to notifications.", details: error.message });
+  }
+});
+
+// Merge with an existing complaint (idempotent join flow)
+app.post("/api/issues/:id/join", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const email = req.body?.email || req.body?.userEmail || req.body?.user?.email;
+
+    if (!email) {
+      return res.status(400).json({ error: "Missing required field: email" });
+    }
+
+    const row = await db.select().from(issuesTable).where(eq(issuesTable.id, id));
+    if (row.length === 0) {
+      return res.status(404).json({ error: "Incident not found" });
+    }
+
+    const issue = row[0];
+    const upvoters: string[] = issue.upvoters ? JSON.parse(issue.upvoters) : [];
+    const followers: string[] = issue.followers ? JSON.parse(issue.followers) : [];
+
+    const alreadyVoted = upvoters.includes(email);
+    const alreadyFollowing = followers.includes(email);
+    const shouldAwardPoints = !alreadyVoted || !alreadyFollowing;
+
+    if (!alreadyVoted) upvoters.push(email);
+    if (!alreadyFollowing) followers.push(email);
+
+    const newVotes = (issue.votes || 0) + (alreadyVoted ? 0 : 1);
+
+    await db.update(issuesTable)
+      .set({
+        votes: newVotes,
+        upvoters: JSON.stringify(upvoters),
+        followers: JSON.stringify(followers)
+      })
+      .where(eq(issuesTable.id, id));
+
+    let userState = null;
+    if (shouldAwardPoints) {
+      userState = await addReputationPoints(email, 10);
+    }
+
+    res.json({
+      success: true,
+      alreadyJoined: alreadyVoted && alreadyFollowing,
+      rewardAwarded: shouldAwardPoints,
+      votes: newVotes,
+      upvoters,
+      followers,
+      userState
+    });
+  } catch (error: any) {
+    console.error("[join] Failed to join existing issue", {
+      issueId: req.params.id,
+      email: req.body?.email,
+      error: error.message,
+      stack: error.stack
+    });
+    res.status(500).json({ error: "Failed to join existing complaint.", details: error.message });
   }
 });
 
@@ -2351,7 +2432,7 @@ Try asking:
 
 • Show department scorecards
 • Recommend flood prevention
-• Show Ward 9 issues
+• Show Ward 4 issues
 • Find hazards near schools`;
 }else if (intent === "scorecard")
    {    const departments = [...new Set(issues.map(i => i.assignedDepartment))];
@@ -2519,7 +2600,7 @@ ${wardIssues.slice(0,6).map(i => `
 
     } else {
 
-        text = "Please specify a ward number. Example: Ward 4 or Ward 9.";
+        text = "Please specify a ward number. Example: Ward 4 or Ward 8.";
 
     }
 

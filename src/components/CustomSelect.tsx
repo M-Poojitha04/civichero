@@ -65,7 +65,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       } else {
         setOpenUpward(false);
       }
-      
+
       // Auto-focus search input if visible
       if (showSearch) {
         setTimeout(() => {
@@ -192,20 +192,56 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         aria-expanded={isOpen}
         aria-disabled={disabled}
         className={`
-          flex justify-between items-center w-full text-left cursor-pointer transition-all duration-200
-          ${disabled ? "opacity-50 cursor-not-allowed" : ""}
-          ${isOpen ? "border-cyan-500/70 ring-2 ring-cyan-500/20" : ""}
-          ${className}
-        `}
+        group
+        relative
+        flex
+        items-center
+        justify-start gap-3
+        w-full
+        rounded-2xl
+        border
+        px-4
+        py-3.5
+        text-left
+        backdrop-blur-xl
+        transition-all
+        duration-300
+        overflow-hidden
+
+        ${disabled
+            ? "opacity-50 cursor-not-allowed"
+            : "hover:border-cyan-400/50 hover:shadow-lg hover:shadow-cyan-500/10"
+          }
+
+        ${isOpen
+            ? "border-cyan-400 ring-4 ring-cyan-500/15 bg-slate-900"
+            : "border-slate-700 bg-slate-900/80"
+          }
+
+        ${className}
+    `}
       >
-        <span className="truncate">
+
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r from-cyan-500/5 via-transparent to-blue-500/5" />
+
+        <span className="relative truncate text-sm font-medium text-white">
+
           {selectedOption ? selectedOption.label : placeholder}
+
         </span>
+
         <ChevronDown
-          className={`h-4 w-4 text-app-text-muted transition-transform duration-200 ml-2 shrink-0 ${
-            isOpen ? "rotate-180 text-cyan-500" : ""
-          }`}
+          className={`
+            relative
+            h-5
+            w-5
+            text-cyan-400
+            transition-all
+            duration-300
+            ${isOpen ? "rotate-180 scale-110" : ""}
+        `}
         />
+
       </button>
 
       {/* Floating Dropdown Panel */}
@@ -218,9 +254,21 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
             transition={{ duration: 0.18, ease: "easeOut" }}
             style={{ zIndex: 9999 }}
             className={`
-              absolute left-0 w-full rounded-xl custom-select-dropdown border
-              ${openUpward ? "bottom-[calc(100%+6px)]" : "top-[calc(100%+6px)]"}
-            `}
+                absolute
+                left-0
+                min-w-[320px]
+                overflow-hidden
+                rounded-2xl
+                border
+                border-cyan-500/20
+                bg-[#0f172a]/95
+                backdrop-blur-2xl
+                shadow-2xl
+                shadow-cyan-900/20
+                ${openUpward
+                ? "bottom-[calc(100%+8px)]"
+                : "top-[calc(100%+8px)]"}
+`}
           >
             {/* Search Input inside Dropdown */}
             {showSearch && (
@@ -233,7 +281,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="w-full bg-transparent text-xs border-0 outline-none focus:ring-0 text-app-text placeholder-app-text-muted/50"
+                  className="min-w-[320px] bg-transparent text-xs border-0 outline-none focus:ring-0 text-app-text placeholder-app-text-muted/50"
                 />
               </div>
             )}
@@ -265,24 +313,42 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                       onClick={() => selectOptionValue(opt.value)}
                       onMouseEnter={() => setHighlightedIndex(idx)}
                       className={`
-                        flex items-center justify-between px-3.5 py-2.5 text-xs font-medium cursor-pointer transition-all duration-150 rounded-lg mx-1 my-0.5
-                        ${isHighlighted ? "custom-select-item-hover" : "text-app-text-secondary"}
-                        ${isSelected ? "custom-select-selected" : ""}
+                      group
+                      mx-2
+                      my-1
+                      flex
+                      cursor-pointer
+                      items-center
+                      justify-start gap-3
+                      rounded-xl
+                      px-4
+                      py-3
+                      text-sm
+                      transition-all
+                      duration-200
+
+                      ${isHighlighted
+                          ? "bg-cyan-500/10 text-white"
+                          : "text-slate-300 hover:bg-slate-800"
+                        }
+
+                      ${isSelected
+                          ? "border border-cyan-500/30"
+                          : ""
+                        }
                       `}
                     >
                       <div className="flex items-center gap-2 truncate">
                         {/* Colored left indicator */}
                         <span
-                          className={`w-1.5 h-1.5 rounded-full shrink-0 transition-all ${
-                            isSelected ? "bg-cyan-400 scale-100" : "bg-transparent scale-0"
-                          }`}
+                          className={`w-1.5 h-1.5 rounded-full shrink-0 transition-all ${isSelected ? "bg-cyan-400 scale-100" : "bg-transparent scale-0"
+                            }`}
                         />
-                        <span className="truncate">{opt.label}</span>
+                        <span className="whitespace-nowrap">{opt.label}</span>
                       </div>
 
                       {isSelected && (
-                        <Check className="h-3.5 w-3.5 text-cyan-400 shrink-0 ml-2" />
-                      )}
+                        <Check className="h-4 w-4 text-cyan-400 shrink-0 ml-2" />)}
                     </div>
                   );
                 })

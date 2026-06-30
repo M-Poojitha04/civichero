@@ -217,6 +217,7 @@ export default function App() {
 
   // Preset simulation tags
   const [isLoadingAi, setIsLoadingAi] = useState(false);
+  const [selectedPreset, setSelectedPreset] = useState<"pothole" | "water" | "electricity" | "garbage" | null>(null);
   const [duplicateWarning, setDuplicateWarning] = useState<{
     isDuplicate: boolean;
     duplicateId: string | null;
@@ -523,6 +524,7 @@ export default function App() {
 
   // Preset templates selection
   const handlePresetSelect = async (preset: "pothole" | "water" | "electricity" | "garbage") => {
+    setSelectedPreset(preset);
     setIsLoadingAi(true);
     setDuplicateWarning(null);
     let prompt = "";
@@ -790,30 +792,44 @@ export default function App() {
 
   // Join Existing Complaint instead of duplicating
   const handleJoinExisting = async (dupId: string) => {
+    if (!currentUser?.email) {
+      setAlertMessage({ text: "Please sign in to join an existing complaint.", type: "error" });
+      return;
+    }
+
     setAlertMessage({ text: "Merging your report. Subscribing you for progress metrics...", type: "info" });
     try {
-      const voteRes = await fetch(`/api/issues/${dupId}/vote`, {
+      const res = await fetch(`/api/issues/${dupId}/join`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: currentUser.email })
       });
 
-      const subRes = await fetch(`/api/issues/${dupId}/subscribe`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: currentUser.email })
-      });
+      const data = await res.json().catch(() => ({}));
 
-      if (voteRes.ok || subRes.ok) {
-        setAlertMessage({ text: "Successfully joined existing report! Subscribed to live dispatch updates.", type: "success" });
+      if (res.ok) {
+        if (data.userState) {
+          setCurrentUser(data.userState);
+        }
+        setAlertMessage({
+          text: data.rewardAwarded
+            ? "Successfully joined existing report! +10 reputation points awarded."
+            : "Successfully joined existing report. You are subscribed to live dispatch updates.",
+          type: "success"
+        });
         setFormTitle("");
         setFormDescription("");
         setFormImageBase64(null);
         setDuplicateWarning(null);
         await fetchIssues();
+        await fetchLeaderboard();
+      } else {
+        console.error("Join existing complaint failed", { status: res.status, payload: data });
+        setAlertMessage({ text: data.error || "Unable to join this complaint right now.", type: "error" });
       }
     } catch (err) {
-      console.error(err);
+      console.error("Join existing complaint failed", err);
+      setAlertMessage({ text: "Merge request failed. Please try again.", type: "error" });
     }
   };
 
@@ -1148,12 +1164,12 @@ export default function App() {
   });
 
   return (
-    <div className="min-h-screen bg-app-bg text-app-text font-sans antialiased selection:bg-cyan-500/30 selection:text-cyan-200">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(79,140,255,0.16),transparent_30%),radial-gradient(circle_at_top_right,rgba(124,92,255,0.14),transparent_24%),linear-gradient(135deg,#060816_0%,#070b14_48%,#05060d_100%)] text-app-text font-sans antialiased selection:bg-cyan-500/30 selection:text-cyan-200">
 
       {/* Modern Two-Layer Enterprise Sticky Navigation System */}
       <header className={`sticky top-0 z-50 w-full border-b transition-all duration-350 ${scrolled
-        ? "bg-app-card/85 backdrop-blur-[18px] border-app-border/80 shadow-md"
-        : "bg-app-card/70 backdrop-blur-[14px] border-app-border/40 shadow-sm"
+        ? "bg-app-card/85 backdrop-blur-[18px] border-app-border/80 shadow-[0_12px_40px_rgba(2,8,23,0.22)]"
+        : "bg-app-card/70 backdrop-blur-[14px] border-app-border/40 shadow-[0_8px_24px_rgba(2,8,23,0.14)]"
         }`}>
 
         {/* ROW 1 (Primary Header) */}
@@ -1236,19 +1252,20 @@ export default function App() {
               <button
                 id="nav-tab-map"
                 onClick={() => setActiveTab("map")}
-                className={`h-9 px-3.5 text-xs font-semibold tracking-wide rounded-xl flex items-center gap-2 cursor-pointer transition-all duration-300 relative group shrink-0 select-none hover:-translate-y-0.5 active:translate-y-0 ${activeTab === "map"
-                  ? "bg-cyan-950/50 text-cyan-400 border border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.2)]"
-                  : "bg-app-bg/10 text-app-text-muted hover:text-app-text hover:bg-app-bg/30 border border-app-border/40 hover:border-app-border/80"
+                className={`h-10 px-5 rounded-2xl flex items-center gap-2.5 shrink-0 font-medium text-sm transition-all duration-300 border ${activeTab === "map"
+                  ?
+                  "bg-gradient-to-b from-blue-500/20 to-blue-600/10 text-blue-300 border-blue-400/25 shadow-lg shadow-blue-500/10"
+                  :
+                  "bg-transparent text-slate-400 border-transparent hover:bg-white/[0.04] hover:text-white hover:border-white/10"
                   }`}
               >
-                <Navigation className={`h-4 w-4 transition-all duration-200 ${activeTab === "map" ? "text-cyan-400 animate-pulse scale-110" : "text-app-text-muted group-hover:scale-105 group-hover:text-app-text"}`} />
+                <Navigation className={`h-4 w-4 transition-all duration-300 ${activeTab === "map"
+                  ?
+                  "text-blue-300"
+                  :
+                  "text-slate-500 group-hover:text-slate-200"
+                  }`} />
                 <span className="whitespace-nowrap">Community Dashboard</span>
-                {activeTab === "map" && (
-                  <motion.span
-                    layoutId="headerTabGlow"
-                    className="absolute -bottom-[6px] left-1/2 -translate-x-1/2 w-8 h-1 bg-gradient-to-r from-cyan-400 to-indigo-500 rounded-full blur-[2px] shadow-[0_0_10px_#06b6d4]"
-                  />
-                )}
               </button>
 
               <button
@@ -1337,7 +1354,7 @@ export default function App() {
       </header>
 
       {/* Primary Container Layout */}
-      <main className="max-w-[1400px] mx-auto p-4 space-y-6">
+      <main className="mx-auto flex w-full max-w-[1380px] flex-col gap-6 px-4 py-6 sm:px-5 lg:px-6 xl:px-8 lg:py-8">
 
         {/* Alerts Banner */}
         {alertMessage && (
@@ -1358,105 +1375,236 @@ export default function App() {
 
         {/* Tab 1: Map command center */}
         {activeTab === "map" && (
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+          <div className="grid grid-cols-1 items-start gap-5 sm:gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] xl:gap-7">
+            <div className="min-w-0 space-y-6">
 
-            {/* Map and Hotspots layer controls */}
-            <div className="xl:col-span-8 space-y-4">
-              <div className="flex justify-between items-center px-1">
-                <div>
-                  <h2 className="text-lg font-bold tracking-tight text-white">Community Issue Map</h2>
-                  <p className="text-xs text-slate-400 font-sans leading-relaxed">
-                    Interactive digital vector twin. Toggle density overlay to highlight clusters. Click anywhere on grid corridors to geo-report a location marker.
-                  </p>
+              {/* Premium Dashboard Header */}
+              <div className="relative overflow-hidden rounded-[30px] border border-cyan-500/15 bg-gradient-to-br from-slate-900 via-[#111827] to-slate-950 shadow-[0_30px_80px_rgba(0,0,0,.55)]">
+
+                {/* Ambient Glow */}
+                <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[550px] h-[220px] bg-cyan-500/10 blur-[120px] pointer-events-none" />
+
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,.06),transparent_60%)] pointer-events-none" />
+
+                {/* Header */}
+                <div className="relative flex items-center justify-between px-8 pt-7 pb-5 border-b border-white/5">
+
+                  <div className="flex items-center gap-5">
+
+                    <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-cyan-500 to-indigo-600 flex items-center justify-center shadow-[0_0_40px_rgba(6,182,212,.45)]">
+
+                      <Navigation className="w-8 h-8 text-white" />
+
+                    </div>
+
+                    <div>
+
+                      <h1 className="text-4xl font-black tracking-tight text-white">
+
+                        Community Operations Center
+
+                      </h1>
+
+                      <p className="text-slate-400 mt-2 text-base">
+
+                        AI-powered live monitoring, predictive analytics and citizen incident intelligence.
+
+                      </p>
+
+                    </div>
+
+                  </div>
+
+                  <div className="flex items-center gap-4">
+
+                    <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/10 px-6 py-4">
+
+                      <div className="text-[10px] uppercase tracking-[0.3em] text-slate-400">
+
+                        Active
+
+                      </div>
+
+                      <div className="text-4xl font-black text-cyan-300">
+
+                        {issues.filter(i => i.status !== "Resolved").length}
+
+                      </div>
+
+                    </div>
+
+                    <button
+                      onClick={() => setShowHeatmap(!showHeatmap)}
+                      className={`rounded-2xl px-8 py-5 text-sm font-bold transition-all ${showHeatmap
+                        ? "bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-500/30"
+                        : "bg-slate-800 hover:bg-slate-700 text-white"
+                        }`}
+                    >
+                      {showHeatmap ? "Hide Heatmap" : "Show Heatmap"}
+                    </button>
+
+                  </div>
+
                 </div>
 
-                <button
-                  onClick={() => setShowHeatmap(!showHeatmap)}
-                  className={`px-3 py-1.5 rounded-xl border text-[11px] font-mono tracking-wide font-medium cursor-pointer transition-all ${showHeatmap
-                    ? "bg-rose-500/10 border-rose-800 text-rose-400 hover:bg-rose-500/20"
-                    : "bg-slate-900 border-slate-800 text-slate-400 hover:text-white"
-                    }`}
-                >
-                  {showHeatmap ? "Disable Heatmap Overlay" : "Enable Heatmap Overlay"}
-                </button>
+                {/* Map */}
+                <div className="relative p-5">
+
+                  <CivicWebMap
+                    issues={issues}
+                    selectedIssueId={selectedIssueId}
+                    onSelectIssue={(id) => {
+                      setSelectedIssueId(id);
+                      setActiveTab("hotline");
+                    }}
+                    onMapClick={handleMapClick}
+                    showHeatmap={showHeatmap}
+                    filterCategory="All"
+                  />
+
+                </div>
+
               </div>
 
-              {/* Vector Map Grid Component */}
-              <CivicWebMap
-                issues={issues}
-                selectedIssueId={selectedIssueId}
-                onSelectIssue={(id) => {
-                  setSelectedIssueId(id);
-                  setActiveTab("hotline");
-                }}
-                onMapClick={handleMapClick}
-                showHeatmap={showHeatmap}
-                filterCategory="All"
+              {/* AI Assistant */}
+              <VoiceAssistant
+                onDraftGenerated={handleAssistantDraftGenerated}
               />
 
-              {/* AI Complaint Assistant Segment */}
-              <VoiceAssistant onDraftGenerated={handleAssistantDraftGenerated} />
             </div>
 
             {/* AI assisted reporting sheet */}
-            <div className="xl:col-span-4 bg-app-card border border-app-border rounded-2xl p-6 shadow-xl space-y-5">
+            <div className="premium-card sticky top-6 w-full self-start p-4 space-y-6 sm:p-5 lg:p-6 xl:min-w-[320px]">
+              <div className="relative overflow-hidden rounded-2xl border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-slate-900 to-slate-950 p-4 sm:p-5 lg:p-6">
 
-              <div className="border-b border-app-border pb-3">
-                <h3 className="text-sm font-bold tracking-wide text-app-text uppercase flex items-center gap-1.5">
-                  <Sparkles className="h-4 w-4 text-cyan-400 animate-spin" />
-                  LOG A HYPERLOCAL INCIDENT
-                </h3>
-                <span className="text-[11px] text-app-text-muted font-sans">
-                  Choose a high-fidelity template simulator or report an independent address.
-                </span>
+                <div className="absolute right-0 top-0 h-24 w-24 rounded-full bg-cyan-500/10 blur-3xl" />
+
+                <div className="relative flex flex-wrap items-start justify-between gap-3">
+
+                  <div className="flex min-w-0 items-start gap-3">
+                    <div className="h-10 w-10 shrink-0 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+
+                      <Sparkles className="h-5 w-5 text-white" />
+
+                    </div>
+
+                    <div className="min-w-0">
+
+                      <h3 className="text-base font-bold leading-tight text-white sm:text-lg">
+                        AI Incident Copilot
+                      </h3>
+
+                      <p className="mt-1 text-sm leading-6 text-slate-400">
+                        AI categorizes, prioritizes and routes every report automatically.
+                      </p>
+
+                    </div>
+
+                  </div>
+
+                  <div className="shrink-0 rounded-xl border border-emerald-500/30 bg-emerald-500/15 px-3 py-2 text-left">
+
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400">
+                      Confidence
+                    </p>
+
+                    <p className="mt-0.5 text-xl font-bold text-emerald-400">
+                      98%
+                    </p>
+
+                  </div>
+
+                </div>
+
               </div>
 
               {/* Simulator preset buttons */}
               <div className="space-y-2">
-                <span className="text-[10px] font-mono text-app-text-muted uppercase block tracking-wider font-bold">HI-FI SIMULATOR PRESETS</span>
-                <div className="grid grid-cols-2 gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => handlePresetSelect("pothole")}
-                    disabled={isLoadingAi}
-                    className="p-3 text-left text-xs bg-app-bg border border-app-border hover:border-cyan-500/50 hover:bg-cyan-500/5 text-app-text rounded-xl transition font-sans cursor-pointer flex flex-col gap-1 shadow-sm active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/40 min-h-[50px] min-w-[100px]"
-                  >
-                    <span className="font-bold block text-app-text">Asphalt Pothole</span>
-                    <span className="text-[9px] text-app-text-muted leading-none">High traffic sector</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handlePresetSelect("water")}
-                    disabled={isLoadingAi}
-                    className="p-3 text-left text-xs bg-app-bg border border-app-border hover:border-cyan-500/50 hover:bg-cyan-500/5 text-app-text rounded-xl transition font-sans cursor-pointer flex flex-col gap-1 shadow-sm active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/40 min-h-[50px] min-w-[100px]"
-                  >
-                    <span className="font-bold block text-app-text">Water Pipe Burst</span>
-                    <span className="text-[9px] text-app-text-muted leading-none">Flooding park gate</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handlePresetSelect("electricity")}
-                    disabled={isLoadingAi}
-                    className="p-3 text-left text-xs bg-app-bg border border-app-border hover:border-cyan-500/50 hover:bg-cyan-500/5 text-app-text rounded-xl transition font-sans cursor-pointer flex flex-col gap-1 shadow-sm active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/40 min-h-[50px] min-w-[100px]"
-                  >
-                    <span className="font-bold block text-app-text">Transformer Sparks</span>
-                    <span className="text-[9px] text-app-text-muted leading-none">High risk exposure</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handlePresetSelect("garbage")}
-                    disabled={isLoadingAi}
-                    className="p-3 text-left text-xs bg-app-bg border border-app-border hover:border-cyan-500/50 hover:bg-cyan-500/5 text-app-text rounded-xl transition font-sans cursor-pointer flex flex-col gap-1 shadow-sm active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/40 min-h-[50px] min-w-[100px]"
-                  >
-                    <span className="font-bold block text-app-text">Illegal Trash Pile</span>
-                    <span className="text-[9px] text-app-text-muted leading-none">Sidewalk blockage</span>
-                  </button>
+                <span className="text-[10px] font-mono text-app-text-muted uppercase block tracking-wider font-bold">Quick Templates</span>
+                <div className="grid grid-cols-2 gap-3">
+
+                  {[
+                    {
+                      icon: "🛣",
+                      title: "Road Damage",
+                      desc: "Potholes & cracks",
+                      color: "from-orange-500/20 to-amber-500/10",
+                      border: "border-orange-500/30",
+                      preset: "pothole" as const
+                    },
+                    {
+                      icon: "💧",
+                      title: "Water Leak",
+                      desc: "Pipeline burst",
+                      color: "from-cyan-500/20 to-blue-500/10",
+                      border: "border-cyan-500/30",
+                      preset: "water" as const
+                    },
+                    {
+                      icon: "⚡",
+                      title: "Electrical",
+                      desc: "Transformer issue",
+                      color: "from-yellow-500/20 to-orange-500/10",
+                      border: "border-yellow-500/30",
+                      preset: "electricity" as const
+                    },
+                    {
+                      icon: "🗑",
+                      title: "Waste",
+                      desc: "Illegal dumping",
+                      color: "from-emerald-500/20 to-green-500/10",
+                      border: "border-emerald-500/30",
+                      preset: "garbage" as const
+                    }
+                  ].map((item) => {
+                    const isSelected = selectedPreset === item.preset;
+
+                    return (
+                    <button
+                      key={item.title}
+                      type="button"
+                      aria-pressed={isSelected}
+                      onClick={() => { void handlePresetSelect(item.preset); }}
+                      className={`
+                group
+                rounded-2xl
+                border
+                ${item.border}
+                bg-gradient-to-br
+                ${item.color}
+                p-4
+                text-left
+                transition-all
+                duration-300
+                hover:-translate-y-1
+                hover:shadow-xl
+                hover:scale-[1.02]
+                ${isSelected ? "ring-2 ring-cyan-400/70 shadow-[0_0_0_1px_rgba(34,211,238,0.25)]" : ""}
+            `}
+                    >
+
+                      <div className="text-3xl mb-3 transition-transform duration-300 group-hover:scale-110">
+                        {item.icon}
+                      </div>
+
+                      <div className="font-semibold text-white text-sm">
+                        {item.title}
+                      </div>
+
+                      <div className="text-xs text-slate-400 mt-1">
+                        {item.desc}
+                      </div>
+
+                    </button>
+                    );
+                  })}
+
                 </div>
               </div>
 
               {/* Native files drag-drop / uploads section */}
               <div className="space-y-2">
-                <span className="text-[10px] font-mono text-app-text-muted uppercase block tracking-wider font-bold">Add Photo (Drag-and-Drop support)</span>
+                <span className="text-[10px] font-mono text-app-text-muted uppercase block tracking-wider font-bold">Evidence</span>
                 <div className="p-4 bg-app-bg border border-app-border hover:border-cyan-500/30 border-dashed rounded-xl transition-all relative flex flex-col items-center justify-center min-h-[90px] text-center select-none group/upload min-w-[44px]">
                   <input
                     type="file"
@@ -1571,7 +1719,7 @@ export default function App() {
               <form onSubmit={handleFormSubmit} className="space-y-4 pt-2 border-t border-app-border">
 
                 <div>
-                  <label className="text-[10px] font-mono text-app-text-muted uppercase block mb-1 font-bold">Issue Headline Title</label>
+                  <label className="text-[10px] font-mono text-app-text-muted uppercase block mb-1 font-bold">Issue Summary</label>
                   <input
                     type="text"
                     value={formTitle}
@@ -1583,7 +1731,7 @@ export default function App() {
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-mono text-app-text-muted uppercase block mb-1 font-bold">Description & Evidence Details</label>
+                  <label className="text-[10px] font-mono text-app-text-muted uppercase block mb-1 font-bold">Description</label>
                   <textarea
                     value={formDescription}
                     onChange={(e) => setFormDescription(e.target.value)}
@@ -1595,7 +1743,7 @@ export default function App() {
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[10px] font-mono text-app-text-muted uppercase block mb-1 font-bold">Grid Category</label>
+                    <label className="text-[10px] font-mono text-app-text-muted uppercase block mb-1 font-bold">Category</label>
                     <CustomSelect
                       value={formCategory}
                       onChange={(val) => setFormCategory(val as Issue["category"])}
@@ -1611,7 +1759,7 @@ export default function App() {
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-mono text-app-text-muted uppercase block mb-1 font-bold">Initial Urgency</label>
+                    <label className="text-[10px] font-mono text-app-text-muted uppercase block mb-1 font-bold">Priority</label>
                     <CustomSelect
                       value={formSeverity}
                       onChange={(val) => setFormSeverity(val as Issue["severity"])}
@@ -1628,7 +1776,7 @@ export default function App() {
 
                 <div className="space-y-1.5 p-3 bg-app-bg border border-app-border rounded-xl text-[10px] font-mono text-app-text-muted shadow">
                   <div className="flex justify-between items-center pb-1.5 border-b border-app-border">
-                    <span className="text-[9px] uppercase text-app-text-muted font-bold">DEVICE GPS CALIBRATION</span>
+                    <span className="text-[9px] uppercase text-app-text-muted font-bold">Location</span>
                     <button
                       type="button"
                       onClick={handleGeolocateUser}
@@ -1657,9 +1805,46 @@ export default function App() {
                 <button
                   type="submit"
                   disabled={isLoadingAi || !formTitle}
-                  className="w-full py-3 bg-cyan-600 hover:bg-cyan-500 disabled:bg-app-bg text-white disabled:text-app-text-muted/55 rounded-xl text-xs font-bold uppercase tracking-wider shadow-lg shadow-cyan-600/10 cursor-pointer disabled:cursor-not-allowed transition-all text-center min-h-[44px]"
+                  className={`
+                    group w-full min-h-[64px] rounded-2xl
+                    bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600
+                    hover:from-blue-500 hover:to-indigo-500
+                    disabled:from-slate-700 disabled:to-slate-700
+                    disabled:cursor-not-allowed
+                    shadow-lg shadow-blue-900/30
+                    hover:shadow-blue-500/30
+                    transition-all duration-300
+                    hover:-translate-y-0.5
+                    px-5 py-4
+                    text-left
+                  `}
                 >
-                  {isLoadingAi ? "Running AI Duplicate Assessment..." : "Submit Incident Report"}
+                  {isLoadingAi ? (
+                    <div className="flex flex-col">
+                      <span className="text-white font-semibold">
+                        🤖 AI Processing...
+                      </span>
+                      <span className="text-blue-100 text-xs mt-1">
+                        Checking duplicates & assigning department
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-white font-semibold text-base">
+                          Submit Incident
+                        </div>
+
+                        <div className="text-blue-100 text-xs mt-1">
+                          AI will classify, prioritize & route automatically
+                        </div>
+                      </div>
+
+                      <div className="text-2xl transition-transform duration-300 group-hover:translate-x-1">
+                        →
+                      </div>
+                    </div>
+                  )}
                 </button>
 
               </form>
@@ -1875,7 +2060,7 @@ export default function App() {
             {/* Ticket details viewport panel */}
             <div className="lg:col-span-7 bg-app-card border border-app-border rounded-2xl p-6 shadow-xl min-h-[400px]">
               {selectedIssue ? (
-                <div className="space-y-5">
+                <div className="space-y-7">
 
                   {/* Detailed Title Section */}
                   <div className="border-b border-app-border pb-3 flex justify-between items-start gap-3">

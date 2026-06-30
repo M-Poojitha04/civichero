@@ -69,6 +69,8 @@ export interface Issue {
   comments: Comment[];
   followers: string[];
   createdAt: number;
+  updatedAt?: number;
+  citizenResolveRemarks?: string;
   originalLanguage: string;
   
   // Upgraded hackathon properties

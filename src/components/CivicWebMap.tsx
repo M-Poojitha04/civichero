@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { 
-  MapPin, 
-  School, 
-  Landmark, 
-  Building2, 
-  Trees, 
-  Search, 
-  Globe, 
-  Layers, 
-  Activity, 
+import {
+  MapPin,
+  School,
+  Landmark,
+  Building2,
+  Trees,
+  Search,
+  Globe,
+  Layers,
+  Activity,
   Locate,
   Info,
   Sparkles,
@@ -88,7 +88,7 @@ export default function CivicWebMap({
   const [gpsProgressText, setGpsProgressText] = useState("");
   const [isSatelliteScanning, setIsSatelliteScanning] = useState<boolean>(false);
   const [mapClicks, setMapClicks] = useState<Array<{ x: number; y: number; id: number }>>([]);
-  
+
   // Simulated dynamic sensor feed
   const [liveNotifications, setLiveNotifications] = useState<Array<{ id: string; text: string; type: string; timestamp: string }>>([
     { id: "n-1", text: "AI-Vision: Water pipeline pressure normal in Sector 4", type: "system", timestamp: "04:31:02" },
@@ -125,7 +125,7 @@ export default function CivicWebMap({
     if (mapProvider === "blueprint") {
       setIsGpsAcquiring(true);
       setGpsProgressText("ESTABLISHING ORBITAL DUPLEX LINK...");
-      
+
       setTimeout(() => {
         setGpsProgressText("CALIBRATING CIVIC GIS BOUNDARIES...");
       }, 500);
@@ -166,7 +166,7 @@ export default function CivicWebMap({
     const rect = e.currentTarget.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const clickY = e.clientY - rect.top;
-    
+
     const pctX = clickX / rect.width;
     const pctY = clickY / rect.height;
 
@@ -234,7 +234,7 @@ export default function CivicWebMap({
       if (clusterGroup.length > 1) {
         const avgLat = clusterGroup.reduce((sum, item) => sum + item.location.lat, 0) / clusterGroup.length;
         const avgLng = clusterGroup.reduce((sum, item) => sum + item.location.lng, 0) / clusterGroup.length;
-        
+
         clusterGroup.forEach(item => visited.add(item.id));
         result.push({
           type: "cluster",
@@ -258,129 +258,302 @@ export default function CivicWebMap({
 
   return (
     <div className="relative w-full h-[640px] bg-app-card border border-app-border rounded-[24px] overflow-hidden shadow-2xl flex flex-col group/map select-none">
-      
-      {/* Map Control Panels */}
-      <div className="absolute top-4 left-4 z-30 flex flex-col gap-2 pointer-events-none">
-        <span className="px-3 py-1.5 bg-slate-950/95 backdrop-blur-md rounded-xl text-[10px] font-mono text-cyan-400 border border-cyan-500/35 shadow-lg flex items-center gap-1.5 font-bold tracking-tight select-none">
-          <Globe className="h-4 w-4 text-cyan-400 animate-spin-slow" />
-          CIVICHero GIS COORDINATOR v2.4
-        </span>
-        {showHeatmap && (
-          <span className="px-3 py-1 bg-red-500/10 backdrop-blur-md rounded-lg text-[10px] font-mono text-red-400 border border-red-500/30 shadow flex items-center gap-1.5 font-bold">
-            <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-ping"></span>
-            NEURAL DENSITY HEATMAP
+
+      {/* Map Status Badges */}
+      <div className="absolute top-5 left-5 z-30 flex items-center gap-2 pointer-events-none">
+
+        <div className="
+    flex items-center gap-2
+    px-3 py-2
+    rounded-full
+    border border-cyan-500/20
+    bg-slate-950/75
+    backdrop-blur-xl
+    shadow-lg
+  ">
+          <div className="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399]" />
+
+          <span className="text-[11px] font-semibold tracking-wide text-white">
+            Live GIS
           </span>
+        </div>
+
+        {showHeatmap && (
+
+          <div className="
+      flex items-center gap-2
+      px-3 py-2
+      rounded-full
+      border border-orange-400/20
+      bg-orange-500/10
+      backdrop-blur-xl
+    ">
+
+            <div className="h-2 w-2 rounded-full bg-orange-400 animate-pulse" />
+
+            <span className="text-[11px] font-semibold text-orange-300">
+              Heatmap
+            </span>
+
+          </div>
+
         )}
+
       </div>
 
-      {/* Floating AI City Status Badge */}
-      <div className="absolute left-4 top-[84px] z-30 hidden xl:flex flex-col gap-2.5 p-4 w-[240px] bg-slate-950/90 backdrop-blur-md border border-app-border/70 rounded-2xl shadow-xl transition-all hover:border-cyan-500/40">
-        <div className="flex items-center justify-between border-b border-app-border/40 pb-2">
-          <span className="text-[10px] font-mono font-bold text-cyan-400 tracking-wider uppercase flex items-center gap-1.5">
-            <Sparkles className="h-3.5 w-3.5 text-cyan-400 animate-pulse" />
-            AI CITY STATUS
-          </span>
-          <span className="text-[9px] font-mono text-app-text-muted">OS v1.8</span>
-        </div>
-        
-        <div className="space-y-2">
-          <div>
-            <div className="flex justify-between text-[11px] font-sans font-bold text-app-text mb-1">
-              <span>Overall City Health</span>
-              <span className="text-emerald-400">92%</span>
+      {/* Floating AI City Status HUD */}
+      <div className="absolute left-5 top-[88px] z-30 hidden xl:block">
+
+        <div className="
+            w-56
+            rounded-2xl
+            border border-white/10
+            bg-slate-950/75
+            backdrop-blur-xl
+            shadow-2xl
+            shadow-black/40
+            p-4
+          ">
+
+          {/* Header */}
+          <div className="flex items-center justify-between mb-4">
+
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.25em] text-cyan-400 font-semibold">
+                CITY HEALTH
+              </div>
+
+              <div className="text-[22px] font-bold text-white leading-none mt-1">
+                92%
+              </div>
             </div>
-            <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-emerald-500 to-cyan-400 rounded-full" style={{ width: "92%" }}></div>
+
+            <div className="
+        h-11
+        w-11
+        rounded-xl
+        bg-emerald-500/15
+        flex
+        items-center
+        justify-center
+      ">
+              <Sparkles className="h-5 w-5 text-emerald-400" />
             </div>
+
           </div>
 
-          <div className="flex justify-between text-[10px] font-mono text-app-text-muted">
-            <span>Active Incidents:</span>
-            <span className="text-app-text font-bold">{issues.filter(i => i.status !== "Resolved").length} Cases</span>
+          {/* Progress */}
+          <div className="mb-4">
+
+            <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
+
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-emerald-400"
+                style={{ width: "92%" }}
+              />
+
+            </div>
+
           </div>
 
-          <div className="flex justify-between text-[10px] font-mono text-app-text-muted">
-            <span>AI Model Confidence:</span>
-            <span className="text-cyan-400 font-bold">98.4%</span>
+          {/* Stats */}
+
+          <div className="space-y-3">
+
+            <div className="flex justify-between items-center">
+
+              <span className="text-slate-400 text-xs">
+                Active
+              </span>
+
+              <span className="font-semibold text-white">
+                {issues.filter(i => i.status !== "Resolved").length}
+              </span>
+
+            </div>
+
+            <div className="flex justify-between items-center">
+
+              <span className="text-slate-400 text-xs">
+                AI Confidence
+              </span>
+
+              <span className="text-cyan-300 font-semibold">
+                98.4%
+              </span>
+
+            </div>
+
+            <div className="flex justify-between items-center">
+
+              <span className="text-slate-400 text-xs">
+                Risk
+              </span>
+
+              <span className="
+          px-2
+          py-1
+          rounded-full
+          text-[10px]
+          font-semibold
+          bg-emerald-500/15
+          text-emerald-300
+        ">
+                LOW
+              </span>
+
+            </div>
+
           </div>
 
-          <div className="flex justify-between text-[10px] font-mono text-app-text-muted">
-            <span>Emergency Level:</span>
-            <span className="text-yellow-400 font-bold uppercase tracking-wider">Low-Managed</span>
-          </div>
         </div>
+
       </div>
 
       {/* Top Right Map Actions Bar */}
-      <div className="absolute top-4 right-4 z-30 flex flex-wrap items-center gap-2 max-w-[calc(100%-220px)] justify-end">
-        
+      <div
+        className="
+          absolute
+          top-5
+          left-1/2
+          -translate-x-1/2
+          z-30
+
+          flex
+          items-center
+          gap-2
+
+          rounded-2xl
+          border
+          border-white/10
+
+          bg-slate-950/70
+          backdrop-blur-xl
+
+          px-3
+          py-2
+
+          shadow-2xl
+          shadow-black/40
+          "
+      >
         {/* Toggle Map Provider */}
         <button
           type="button"
           onClick={handleToggleProvider}
-          className={`px-3 py-2 rounded-xl border text-xs font-bold cursor-pointer transition-all duration-300 flex items-center gap-1.5 shadow-lg ${
-            mapProvider === "google"
-              ? "bg-cyan-950/80 border-cyan-500/80 text-cyan-400"
-              : "bg-slate-900/90 border-app-border/80 text-app-text hover:border-cyan-500/40"
-          }`}
-          title="Toggle Google Maps GIS Layer"
+          className={`
+    flex items-center gap-2
+    px-4 py-2
+    rounded-xl
+    transition-all duration-300
+    border
+    ${mapProvider === "google"
+              ? "bg-blue-500/15 border-blue-400/40 text-blue-300 shadow-lg shadow-blue-500/10"
+              : "bg-transparent border-transparent text-slate-300 hover:bg-white/5 hover:text-white"
+            }
+  `}
+          title="Toggle Google Maps"
         >
-          <Compass className="h-4 w-4 text-cyan-400" />
-          <span>{mapProvider === "google" ? "Live Google Map" : "Vector blueprint"}</span>
+          <Compass
+            className={`h-4 w-4 transition-transform duration-300 ${mapProvider === "google"
+              ? "rotate-12 text-blue-300"
+              : ""
+              }`}
+          />
+
+          <span className="text-xs font-medium">
+            Vector
+          </span>
         </button>
 
         {/* Satellite Mode Switch */}
         <button
           type="button"
-          onClick={() => setMapMode(prev => prev === "standard" ? "satellite" : "standard")}
-          className={`px-3 py-2 rounded-xl border text-xs font-bold cursor-pointer transition-all duration-300 flex items-center gap-1.5 shadow-lg ${
-            mapMode === "satellite"
-              ? "bg-emerald-950/80 border-emerald-500/80 text-emerald-400"
-              : "bg-slate-900/90 border-app-border/80 text-app-text hover:border-emerald-500/40"
-          }`}
-          title="Toggle Satellite Imagery"
+          onClick={() =>
+            setMapMode(prev =>
+              prev === "standard"
+                ? "satellite"
+                : "standard"
+            )
+          }
+          className={`
+    flex items-center gap-2
+    px-4 py-2
+    rounded-xl
+    transition-all duration-300
+    border
+    ${mapMode === "satellite"
+              ? "bg-blue-500/15 border-blue-400/40 text-blue-300 shadow-lg shadow-blue-500/10"
+              : "bg-transparent border-transparent text-slate-300 hover:bg-white/5 hover:text-white"
+            }
+  `}
         >
-          <Layers className="h-4 w-4 text-emerald-400" />
-          <span>{mapMode === "satellite" ? "Satellite View" : "Blueprint Map"}</span>
+          <Layers className="h-4 w-4" />
+
+          <span className="text-xs font-medium">
+            Satellite
+          </span>
         </button>
 
         {/* Clustering Toggle */}
         <button
           type="button"
           onClick={() => setIsClustered(prev => !prev)}
-          className={`px-3 py-2 rounded-xl border text-xs font-bold cursor-pointer transition-all duration-300 flex items-center gap-1.5 shadow-lg ${
-            isClustered
-              ? "bg-indigo-950/80 border-indigo-500/80 text-indigo-400"
-              : "bg-slate-900/90 border-app-border/80 text-app-text hover:border-indigo-500/40"
-          }`}
-          title="Toggle Marker Clustering"
+          className={`
+    flex items-center gap-2
+    px-4 py-2
+    rounded-xl
+    transition-all duration-300
+    border
+    ${isClustered
+              ? "bg-blue-500/15 border-blue-400/40 text-blue-300 shadow-lg shadow-blue-500/10"
+              : "bg-transparent border-transparent text-slate-300 hover:bg-white/5 hover:text-white"
+            }
+  `}
         >
-          <Locate className="h-4 w-4 text-indigo-400" />
-          <span>Clusters: {isClustered ? "ON" : "OFF"}</span>
+          <Locate className="h-4 w-4" />
+
+          <span className="text-xs font-medium">
+            Cluster
+          </span>
+
+          <div
+            className={`w-2 h-2 rounded-full ${isClustered
+              ? "bg-emerald-400 shadow-[0_0_8px_#34d399]"
+              : "bg-slate-500"
+              }`}
+          />
         </button>
 
         {/* Search Landmarks */}
-        <div className="relative flex items-center bg-slate-950/90 border border-app-border/80 rounded-xl px-2.5 py-1.5 shadow-lg max-w-[180px]">
-          <Search className="h-4 w-4 text-app-text-muted mr-1.5 shrink-0" />
-          <input
-            type="text"
-            placeholder="Search landmarks..."
-            value={searchVal}
-            onChange={(e) => setSearchVal(e.target.value)}
-            className="bg-transparent text-xs text-app-text placeholder-app-text-muted/60 focus:outline-none w-28 py-0.5 font-semibold"
-          />
+        <div className="relative">
+          <div className="flex items-center rounded-xl bg-white/5 border border-white/10 px-3 py-2 w-56">
+            <Search className="h-4 w-4 text-slate-400 mr-2" />
+
+            <input
+              type="text"
+              placeholder="Search places..."
+              value={searchVal}
+              onChange={(e) => setSearchVal(e.target.value)}
+              className="bg-transparent text-sm text-white placeholder:text-slate-500 outline-none w-full"
+            />
+          </div>
+
           {searchVal && (
-            <div className="absolute top-11 left-0 right-0 bg-slate-950/95 border border-app-border rounded-xl shadow-2xl p-1.5 z-50 text-left max-h-36 overflow-y-auto">
-              {LANDMARKS.filter(lm => lm.name.toLowerCase().includes(searchVal.toLowerCase())).map(lm => (
-                <button
-                  type="button"
-                  key={lm.id}
-                  onClick={() => handleSearchSelect(lm)}
-                  className="w-full text-left text-[11px] text-app-text hover:bg-slate-900 px-2.5 py-1.5 rounded-lg transition-all font-sans"
-                >
-                  📍 {lm.name}
-                </button>
-              ))}
+            <div className="absolute mt-2 w-full rounded-xl bg-slate-900 border border-white/10 shadow-2xl overflow-hidden z-50">
+              {LANDMARKS
+                .filter(lm =>
+                  lm.name.toLowerCase().includes(searchVal.toLowerCase())
+                )
+                .map(lm => (
+                  <button
+                    key={lm.id}
+                    onClick={() => handleSearchSelect(lm)}
+                    className="w-full px-4 py-3 text-left hover:bg-white/5 transition text-sm text-slate-200"
+                  >
+                    📍 {lm.name}
+                  </button>
+                ))}
             </div>
           )}
         </div>
@@ -388,11 +561,11 @@ export default function CivicWebMap({
 
       {/* Primary Scaled Map Container */}
       <div className="relative flex-1 bg-slate-950 overflow-hidden cursor-crosshair">
-        
+
         {/* GPS Acquisition Simulation Effect */}
         <AnimatePresence>
           {isGpsAcquiring && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -429,11 +602,11 @@ export default function CivicWebMap({
           </div>
         ) : (
           <div className="relative w-full h-full">
-            
+
             {/* SVG Canvas Map */}
-            <svg 
-              width="100%" 
-              height="100%" 
+            <svg
+              width="100%"
+              height="100%"
               onClick={handleMapClick}
               className="absolute inset-0 transition-all duration-700 ease-in-out"
             >
@@ -494,7 +667,7 @@ export default function CivicWebMap({
 
                   {/* Satellite Simulated Forests / Park Areas */}
                   <rect x="5%" y="60%" width="22%" height="30%" rx="12" fill="#10b981" opacity="0.06" />
-                  
+
                   {/* Building Outlines */}
                   <rect x="35%" y="15%" width="12%" height="10%" rx="6" fill="#1e293b" opacity="0.4" stroke="#475569" strokeWidth="1" />
                   <rect x="52%" y="15%" width="15%" height="10%" rx="6" fill="#1e293b" opacity="0.4" stroke="#475569" strokeWidth="1" />
@@ -539,31 +712,31 @@ export default function CivicWebMap({
 
               {/* Highway main lines representing high-tech street structures */}
               {ROADS.map(road => (
-                <g key={road.id} 
-                   className="group/road cursor-pointer"
-                   onMouseEnter={() => setHoveredItem({ name: road.name, info: "City Transit Corridors • Clean flow", type: "road" })}
-                   onMouseLeave={() => setHoveredItem(null)}
+                <g key={road.id}
+                  className="group/road cursor-pointer"
+                  onMouseEnter={() => setHoveredItem({ name: road.name, info: "City Transit Corridors • Clean flow", type: "road" })}
+                  onMouseLeave={() => setHoveredItem(null)}
                 >
-                  <line 
-                    x1={road.orientation === "vertical" ? road.pos : "0%"} 
-                    y1={road.orientation === "vertical" ? "0%" : road.pos} 
-                    x2={road.orientation === "vertical" ? road.pos : "100%"} 
-                    y2={road.orientation === "vertical" ? "100%" : road.pos} 
-                    stroke={mapMode === "satellite" ? "#1e293b" : "var(--app-map-road)"} 
-                    strokeWidth={road.strokeWidth} 
-                    opacity="0.8" 
+                  <line
+                    x1={road.orientation === "vertical" ? road.pos : "0%"}
+                    y1={road.orientation === "vertical" ? "0%" : road.pos}
+                    x2={road.orientation === "vertical" ? road.pos : "100%"}
+                    y2={road.orientation === "vertical" ? "100%" : road.pos}
+                    stroke={mapMode === "satellite" ? "#1e293b" : "var(--app-map-road)"}
+                    strokeWidth={road.strokeWidth}
+                    opacity="0.8"
                   />
 
                   {/* High-fidelity traffic congestion overlay */}
                   {trafficActive && (
-                    <line 
-                      x1={road.orientation === "vertical" ? road.pos : "0%"} 
-                      y1={road.orientation === "vertical" ? "0%" : road.pos} 
-                      x2={road.orientation === "vertical" ? road.pos : "100%"} 
-                      y2={road.orientation === "vertical" ? "100%" : road.pos} 
-                      stroke={road.id === "road-2" ? "#ef4444" : road.id === "road-5" ? "#eab308" : "#10b981"} 
-                      strokeWidth={road.strokeWidth - 2} 
-                      opacity="0.75" 
+                    <line
+                      x1={road.orientation === "vertical" ? road.pos : "0%"}
+                      y1={road.orientation === "vertical" ? "0%" : road.pos}
+                      x2={road.orientation === "vertical" ? road.pos : "100%"}
+                      y2={road.orientation === "vertical" ? "100%" : road.pos}
+                      stroke={road.id === "road-2" ? "#ef4444" : road.id === "road-5" ? "#eab308" : "#10b981"}
+                      strokeWidth={road.strokeWidth - 2}
+                      opacity="0.75"
                       strokeDasharray="8, 12"
                       className="animate-[flow_7s_linear_infinite]"
                       style={{ strokeDashoffset: road.id === "road-2" ? 30 : -30 }}
@@ -615,7 +788,7 @@ export default function CivicWebMap({
                         strokeDasharray="6, 8"
                         className="animate-[flow_4s_linear_infinite] drop-shadow-[0_0_6px_rgba(168,85,247,0.8)]"
                       />
-                      
+
                       {/* Emergency Responder label */}
                       <text
                         x={`${(pctHospital.x + pctIncident.x) / 2}%`}
@@ -759,14 +932,14 @@ export default function CivicWebMap({
 
               {/* Satellite scanning sweep lines */}
               {mapMode === "satellite" && isSatelliteScanning && (
-                <line 
-                  x1="0%" 
-                  y1="0%" 
-                  x2="100%" 
-                  y2="0%" 
-                  stroke="#10b981" 
-                  strokeWidth="3" 
-                  className="animate-[scanSweep_2s_ease-in-out_infinite] drop-shadow-[0_0_10px_#10b981]" 
+                <line
+                  x1="0%"
+                  y1="0%"
+                  x2="100%"
+                  y2="0%"
+                  stroke="#10b981"
+                  strokeWidth="3"
+                  className="animate-[scanSweep_2s_ease-in-out_infinite] drop-shadow-[0_0_10px_#10b981]"
                 />
               )}
             </svg>
@@ -846,7 +1019,7 @@ export default function CivicWebMap({
                         {marker.count}
                       </span>
                     </span>
-                    
+
                     {/* Visual Label */}
                     {isClusterSelected && (
                       <div className="absolute top-7 bg-slate-950 text-cyan-400 text-[9px] font-mono py-0.5 px-2 rounded border border-cyan-800 whitespace-nowrap z-30">
@@ -913,20 +1086,18 @@ export default function CivicWebMap({
                   )}
 
                   {/* Marker pin shape */}
-                  <div className={`relative flex items-center justify-center w-8 h-8 rounded-full border-2 text-white shadow-xl transition-all duration-300 ${markerColor} ${
-                    isSelected ? "ring-4 ring-cyan-400 scale-110 z-30" : "hover:scale-115"
-                  }`}>
+                  <div className={`relative flex items-center justify-center w-8 h-8 rounded-full border-2 text-white shadow-xl transition-all duration-300 ${markerColor} ${isSelected ? "ring-4 ring-cyan-400 scale-110 z-30" : "hover:scale-115"
+                    }`}>
                     <MapPin className="h-4.5 w-4.5" />
                   </div>
 
                   {/* Little triangle pointer */}
-                  <div className={`w-2.5 h-2.5 -mt-1.5 rotate-45 border-r border-b ${
-                    issue.status === "Resolved" ? "bg-emerald-500 border-emerald-400" :
+                  <div className={`w-2.5 h-2.5 -mt-1.5 rotate-45 border-r border-b ${issue.status === "Resolved" ? "bg-emerald-500 border-emerald-400" :
                     issue.severity === "Critical" ? "bg-red-600 border-red-500" :
-                    issue.severity === "High" ? "bg-orange-500 border-orange-400" :
-                    issue.severity === "Medium" ? "bg-yellow-500 border-yellow-400" :
-                    "bg-blue-500 border-blue-400"
-                  }`} />
+                      issue.severity === "High" ? "bg-orange-500 border-orange-400" :
+                        issue.severity === "Medium" ? "bg-yellow-500 border-yellow-400" :
+                          "bg-blue-500 border-blue-400"
+                    }`} />
 
                   {/* Label displayed on selection */}
                   {isSelected && (
@@ -946,98 +1117,100 @@ export default function CivicWebMap({
       {mapMode === "satellite" && mapProvider === "blueprint" && (
         <div className="px-4 py-2 bg-slate-900/90 border-t border-app-border/40 flex flex-wrap items-center gap-4 z-10">
           <span className="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider">Satellite Analytics:</span>
-          
+
           <label className="flex items-center gap-1.5 text-[10px] font-mono text-app-text font-bold cursor-pointer hover:text-emerald-400">
-            <input 
-              type="checkbox" 
-              checked={aiDetectionActive} 
+            <input
+              type="checkbox"
+              checked={aiDetectionActive}
               onChange={() => setAiDetectionActive(!aiDetectionActive)}
-              className="accent-emerald-500" 
+              className="accent-emerald-500"
             />
             AI Object Detect Overlay
           </label>
 
           <label className="flex items-center gap-1.5 text-[10px] font-mono text-app-text font-bold cursor-pointer hover:text-emerald-400">
-            <input 
-              type="checkbox" 
-              checked={satelliteLabelsActive} 
+            <input
+              type="checkbox"
+              checked={satelliteLabelsActive}
               onChange={() => setSatelliteLabelsActive(!satelliteLabelsActive)}
-              className="accent-emerald-500" 
+              className="accent-emerald-500"
             />
             Building Labels
           </label>
 
           <label className="flex items-center gap-1.5 text-[10px] font-mono text-app-text font-bold cursor-pointer hover:text-emerald-400">
-            <input 
-              type="checkbox" 
-              checked={terrainActive} 
+            <input
+              type="checkbox"
+              checked={terrainActive}
               onChange={() => setTerrainActive(!terrainActive)}
-              className="accent-emerald-500" 
+              className="accent-emerald-500"
             />
             Topography Terrain
           </label>
         </div>
       )}
 
-      {/* Map Interactive Layers bar */}
-      <div className="px-4 py-2 bg-slate-900/60 border-t border-app-border/40 flex flex-wrap items-center justify-between gap-y-2 z-10">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-          <span className="text-[10px] font-mono text-cyan-400 font-bold uppercase tracking-wider">HUD Overlays:</span>
-          
-          <button
-            type="button"
-            onClick={() => setTrafficActive(!trafficActive)}
-            className={`px-2 py-1 text-[10px] font-mono font-bold rounded-lg border transition-all ${
-              trafficActive ? "bg-emerald-500/15 border-emerald-500/50 text-emerald-400" : "bg-transparent border-app-border/50 text-app-text-muted"
-            }`}
-          >
-            🚥 Traffic Flow
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setWeatherActive(!weatherActive)}
-            className={`px-2 py-1 text-[10px] font-mono font-bold rounded-lg border transition-all ${
-              weatherActive ? "bg-cyan-500/15 border-cyan-500/50 text-cyan-400" : "bg-transparent border-app-border/50 text-app-text-muted"
-            }`}
-          >
-            🌧️ Weather Grid
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setRouteActive(!routeActive)}
-            className={`px-2 py-1 text-[10px] font-mono font-bold rounded-lg border transition-all ${
-              routeActive ? "bg-purple-500/15 border-purple-500/50 text-purple-400" : "bg-transparent border-app-border/50 text-app-text-muted"
-            }`}
-          >
-            🚑 Responder Route
-          </button>
-        </div>
-
-        {/* Live Simulation Stream */}
-        <div className="flex items-center gap-2 overflow-hidden max-w-[450px]">
-          <span className="text-[9px] font-mono bg-cyan-950 px-1.5 py-0.5 rounded text-cyan-400 font-bold tracking-wider shrink-0 uppercase animate-pulse">
-            LIVE SYSTEM TELEMETRY FEED
-          </span>
-          <div className="h-4 w-[280px] overflow-hidden relative">
+      {/* Bottom Layer Controls */}
+      <div className="border-t border-white/10 bg-slate-950/75 backdrop-blur-xl px-5 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] uppercase tracking-[0.25em] text-slate-500 font-semibold mr-2">
+              Layers
+            </span>
+            <button
+              type="button"
+              onClick={() => setTrafficActive(!trafficActive)}
+              className={`rounded-full px-3 py-1.5 text-xs transition-all ${trafficActive
+                  ? "bg-blue-500/15 text-blue-300"
+                  : "text-slate-400 hover:bg-white/5"
+                }`}
+            >
+              🚦 Traffic
+            </button>
+            <button
+              type="button"
+              onClick={() => setWeatherActive(!weatherActive)}
+              className={`rounded-full px-3 py-1.5 text-xs transition-all ${weatherActive
+                  ? "bg-blue-500/15 text-blue-300"
+                  : "text-slate-400 hover:bg-white/5"
+                }`}
+            >
+              🌦 Weather
+            </button>
+            <button
+              type="button"
+              onClick={() => setRouteActive(!routeActive)}
+              className={`rounded-full px-3 py-1.5 text-xs transition-all ${routeActive
+                  ? "bg-blue-500/15 text-blue-300"
+                  : "text-slate-400 hover:bg-white/5"
+                }`}
+            >
+              🚑 Routes
+            </button>
+          </div>
+          <div className="flex items-center gap-3 min-w-0 flex-1 justify-end">
+            <span className="rounded-full bg-emerald-500/15 px-2 py-1 text-[10px] text-emerald-300 font-semibold whitespace-nowrap">
+              ● LIVE
+            </span>
             <AnimatePresence mode="wait">
               <motion.span
                 key={liveNotifications[0]?.id}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3 }}
-                className="absolute inset-0 truncate font-mono text-[9px] text-app-text-muted block font-medium"
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25 }}
+                className="truncate text-xs text-slate-300"
               >
-                [{liveNotifications[0]?.timestamp}] {liveNotifications[0]?.text}
+                {liveNotifications[0]?.text}
               </motion.span>
             </AnimatePresence>
           </div>
         </div>
       </div>
 
-      {/* Map Legend & Status Bar */}
+
+
+      {/* Map Legend & Status Bar */ }
       <div className="p-4 bg-app-card border-t border-app-border/80 flex flex-wrap gap-y-3 justify-between items-center z-10">
         <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5">
           <span className="text-xs text-app-text-muted font-bold uppercase tracking-wider text-[11px]">Map Legend:</span>
@@ -1068,7 +1241,7 @@ export default function CivicWebMap({
           {hoveredItem ? (
             <div className="text-xs font-mono text-cyan-400 transition-all duration-200 flex items-center gap-1 font-bold">
               <Info className="h-3.5 w-3.5 text-cyan-400" />
-              <span className="text-app-text-muted">Focus:</span> {hoveredItem.name} 
+              <span className="text-app-text-muted">Focus:</span> {hoveredItem.name}
               <span className="text-app-text-muted/80 ml-2">({hoveredItem.info})</span>
             </div>
           ) : (
@@ -1097,6 +1270,6 @@ export default function CivicWebMap({
           }
         }
       `}</style>
-    </div>
+    </div >
   );
 }

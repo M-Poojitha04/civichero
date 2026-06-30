@@ -2,9 +2,9 @@
 @import "tailwindcss";
 
 :root {
-  --app-bg: #0F172A;
-  --app-card: #162033;
-  --app-elevated: #1D293D;
+  --app-bg: #070B14;
+  --app-card: #101826;
+  --app-elevated: #182235;
   --app-border: rgba(255, 255, 255, 0.08);
   --app-text: #F8FAFC;
   --app-text-secondary: #CBD5E1;
@@ -14,7 +14,7 @@
   --app-success: #10B981;
   --app-warning: #F59E0B;
   --app-danger: #EF4444;
-  
+
   --app-map-bg: #0B0F19;
   --app-map-grid: rgba(255, 255, 255, 0.025);
   --app-map-road: rgba(255, 255, 255, 0.05);
@@ -44,7 +44,7 @@
   --font-secondary: 'Inter', sans-serif;
   --font-numbers: 'IBM Plex Sans', sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
-  
+
   --color-app-bg: var(--app-bg);
   --color-app-card: var(--app-card);
   --color-app-elevated: var(--app-elevated);
@@ -57,7 +57,7 @@
   --color-app-success: var(--app-success);
   --color-app-warning: var(--app-warning);
   --color-app-danger: var(--app-danger);
-  
+
   --color-app-map-bg: var(--app-map-bg);
   --color-app-map-grid: var(--app-map-grid);
   --color-app-map-road: var(--app-map-road);
@@ -144,11 +144,20 @@ body {
 }
 
 /* Premium micro-effects */
-.glass-panel {
-  background: rgba(22, 32, 51, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+.glass-panel{
+
+background:rgba(16,24,38,.78);
+
+backdrop-filter:blur(20px);
+
+-webkit-backdrop-filter:blur(20px);
+
+border:1px solid rgba(255,255,255,.06);
+
+box-shadow:
+
+0 18px 45px rgba(0,0,0,.30);
+
 }
 
 .light .glass-panel {
@@ -159,17 +168,39 @@ body {
 }
 
 .premium-card {
-  border-radius: 20px !important;
-  background-color: var(--app-card);
-  border: 1px solid var(--app-border);
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.12), 0 2px 8px -1px rgba(0, 0, 0, 0.08);
+  border-radius: 22px !important;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,0.02),
+      rgba(255,255,255,0)
+    ),
+    var(--app-card);
+
+  border: 1px solid rgba(255,255,255,.07);
+
+  transition:
+    transform .35s ease,
+    box-shadow .35s ease,
+    border-color .35s ease;
+
+  box-shadow:
+      0 12px 32px rgba(0,0,0,.28),
+      inset 0 1px 0 rgba(255,255,255,.03);
 }
 
 .premium-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.22), 0 6px 16px -2px rgba(0, 0, 0, 0.14);
-  border-color: rgba(255, 255, 255, 0.15) !important;
+
+  transform: translateY(-4px);
+
+  border-color: rgba(79,140,255,.20);
+
+  box-shadow:
+
+    0 24px 60px rgba(0,0,0,.42),
+
+    0 0 0 1px rgba(79,140,255,.08);
+
 }
 
 /* Slim elegant scrollbars */
@@ -177,13 +208,16 @@ body {
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--app-border);
   border-radius: 9999px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: var(--app-text-muted);
 }
@@ -192,6 +226,7 @@ body {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -238,5 +273,3 @@ body {
     transform: translateX(100%);
   }
 }
-
-
