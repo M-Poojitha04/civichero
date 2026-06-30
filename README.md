@@ -1,4 +1,4 @@
-# 🦸 CivicHero – AI-Powered Community Issue Management Platform
+# CivicHero – AI-Powered Community Issue Management Platform
 
 ![React](https://img.shields.io/badge/React-18-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)
@@ -7,6 +7,12 @@
 ![Firebase](https://img.shields.io/badge/Firebase-Authentication-orange)
 ![Gemini AI](https://img.shields.io/badge/Google-Gemini%20AI-red)
 ![License](https://img.shields.io/badge/License-MIT-success)
+
+## 🚀 Live Demo
+
+🔗 **Application:** https://civichero-309867112593.asia-southeast1.run.app
+
+Experience CivicHero live on Google Cloud Run and explore AI-powered community issue reporting, verification, real-time tracking, and municipal analytics.
 
 ## Overview
 
